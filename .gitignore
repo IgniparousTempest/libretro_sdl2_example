@@ -1,0 +1,8 @@
+# Build
+cmake-build-debug/
+
+# CLion Files
+.idea/
+
+# Runtime files
+screenshot.bmp
