@@ -17,6 +17,7 @@ static retro_input_state_t input_state_cb;
 static retro_environment_t environ_cb;
 static retro_audio_sample_t audio_cb;
 static retro_audio_sample_batch_t audio_batch_cb;
+static struct retro_hw_render_callback hw_render;
 
 unsigned retro_api_version(void)
 {
@@ -41,8 +42,30 @@ static void audio_set_state(bool enable)
 {
 }
 
+static void context_reset(void)
+{
+    fprintf(stderr, "Context reset!\n");
+    //TODO: rglgen_resolve_symbols(hw_render.get_proc_address);
+}
+
+static void context_destroy(void)
+{
+    fprintf(stderr, "Context destroy!\n");
+}
+
 bool retro_load_game(const struct retro_game_info *info)
 {
+    if (USE_HARDWARE) {
+        hw_render.context_type = RETRO_HW_CONTEXT_OPENGL;
+        hw_render.context_reset = context_reset;
+        hw_render.context_destroy = context_destroy;
+        hw_render.depth = true;
+        hw_render.bottom_left_origin = true;
+        if (!environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render)) {
+            fprintf(stderr, "HW Context could not be initialized, exiting...\n");
+            return false;
+        }
+    }
     game = std::make_unique<Game>(FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT);
     return true;
 }
@@ -146,5 +169,10 @@ void retro_reset(void) { }
 
 void retro_run(void)
 {
-    video_cb(game->GetFrameBuffer(), FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT, sizeof(uint32_t) * FRAMEBUFFER_WIDTH);
+    if (USE_HARDWARE) {
+        hw_render.get_current_framebuffer = reinterpret_cast<retro_hw_get_current_framebuffer_t>(game->GetFrameBuffer());
+        video_cb(RETRO_HW_FRAME_BUFFER_VALID, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT, sizeof(uint32_t) * FRAMEBUFFER_WIDTH);
+    } else {
+        video_cb(game->GetFrameBuffer(), FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT, sizeof(uint32_t) * FRAMEBUFFER_WIDTH);
+    }
 }

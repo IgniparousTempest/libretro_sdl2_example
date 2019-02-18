@@ -10,6 +10,8 @@ PKG_SEARCH_MODULE(SDL2IMAGE REQUIRED SDL2_image>=2.0.0)
 
 INCLUDE_DIRECTORIES(${SDL2_INCLUDE_DIRS} ${SDL2IMAGE_INCLUDE_DIRS})
 
+add_compile_definitions(USE_HARDWARE=true)  # Toggle this
+
 # Make Libretro library
 add_library(${PROJECT_NAME} SHARED libretro.hpp libretro.cpp game.cpp game.hpp)
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} ${SDL2IMAGE_LIBRARIES})

@@ -14,7 +14,6 @@ public:
     uint32_t* GetFrameBuffer();
 
 private:
-    bool hardware;
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Surface *surface;
